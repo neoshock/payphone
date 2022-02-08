@@ -52,7 +52,6 @@ public class MainActivity extends AppCompatActivity {
                                 "http://paystoreCZ.com/confirm.php", generateRandomSerie(),
                                 Integer.parseInt(monto.getText().toString()),
                                 Integer.parseInt(monto.getText().toString()) - 10, 0,10);
-
                         generateOrden(payment);
                     }
                 }
@@ -76,7 +75,13 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onResponse(Call<Transaction> call, Response<Transaction> response) {
                 Transaction transaction = response.body();
-                //callPayPhoneApp(transaction);
+                if(transaction != null){
+                    //callPayPhoneApp(transaction);
+                    nextWindowResult(transaction);
+                }else {
+                    showAlert("Hubo un error al generar la orden");
+                }
+
             }
 
             @Override
@@ -95,13 +100,20 @@ public class MainActivity extends AppCompatActivity {
         alertDialogBuilder.show();
     }
 
+    private void nextWindowResult(Transaction transaction){
+        Bundle bundle = new Bundle();
+        Intent intent = new Intent(MainActivity.this, SuccesDetailPayment.class);
+        bundle.putInt("transactionId", transaction.getTransactionId());
+        intent.putExtras(bundle);
+        startActivity(intent);
+    }
+
     private void callPayPhoneApp(Transaction transaction){
         Intent intent = new Intent("payPhone_Android.PayPhone_Android.Purchase");
         Gson gson = new Gson();
         intent.putExtra("otherApp", true);
         String parameters = gson.toJson(transaction);
         intent.putExtra("parameters", parameters);
-        intent.putExtra("parameterName", "parameters" );
         intent.putExtra("package", getPackageName());
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
